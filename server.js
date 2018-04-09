@@ -13,8 +13,15 @@ const cheerio = require("cheerio");
 app.use(bodyParser.urlencoded({ extended : false }));
 app.use(express.static("public"));
 
+app.engine("handlebars", handlebars({ defaultLayout: "main" }));
+app.set("view engine", "handlebars");
+
 mongoose.Promise = Promise;
 mongoose.connect("mongodb://localhost/nytimes");
+
+app.get("/", function (req, res) {
+    res.render("index", {});
+});
 
 app.get("/scrape", function(req, res) {
     axios.get("https://www.nytimes.com/section/technology?action=click&pgtype=Homepage&region=TopBar&module=HPMiniNav&contentCollection=Tech&WT.nav=page")
@@ -36,12 +43,22 @@ app.get("/scrape", function(req, res) {
                     // If an error occurred, send it to the client
                     res.json(err);
                 });
+        }); 
+        res.send("articles scraped successfuly"); 
+    }); 
+});
+
+app.get("/display", function(req, res) {
+    db.Article
+        .find({})
+        .then(function(articles) {
+            res.render("articles", {articles});
+        })
+        .catch(function(err) {
+            res.json(err);
         });
-        res.end();
-    });
 });
 
 app.listen(PORT, function() {
     console.log("App running on port " + PORT + "!");
-})
-
+});
