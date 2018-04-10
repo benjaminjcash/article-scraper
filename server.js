@@ -33,18 +33,24 @@ app.get("/scrape", function(req, res) {
             result.title = $(this).find("h2").text().trim();            
             result.link = $(this).attr("href");
             result.summary = $(this).find(".summary").text();
+            
+
             //adds scraped article to database using Article model.
             db.Article
-                .create(result)
-                .then(function (dbArticle) {
-                    console.log(dbArticle);
-                })
-                .catch(function (err) {
-                    // If an error occurred, send it to the client
-                    res.json(err);
+                .findOne({ title: result.title })
+                .then(function(match) {
+                    if(match) {
+                        res.end();
+                    } else {
+                        db.Article
+                            .create(result)
+                            .then(function (dbArticle) {
+                                res.json(dbArticle);
+                            });
+                    };
                 });
+                
         }); 
-        res.send("articles scraped successfuly"); 
     }); 
 });
 
@@ -63,8 +69,7 @@ app.post("/articles/:id", function(req, res) {
     db.Comment
         .create(req.body)
         .then(function(dbComment) {
-            console.log(dbComment);
-            return db.Article.findOneAndUpdate({ _id: req.params.id }, { comment: dbComment._id }, { new: true });
+            return db.Article.findOneAndUpdate({ _id: req.params.id }, { $push: { comments: dbComment._id }}, { new: true });
         })
         .then(function(dbArticle) {
             res.json(dbArticle)
@@ -74,9 +79,10 @@ app.post("/articles/:id", function(req, res) {
 });
 
 app.get("/comments/:id", function(req, res) {
+    // console.log(req.params.id);
     db.Article
         .findOne({ _id: req.params.id })
-        .populate("comment")
+        .populate("comments")
         .then(function(dbArticle) {
             res.json(dbArticle);
         })
@@ -84,6 +90,18 @@ app.get("/comments/:id", function(req, res) {
             res.json(err);
         });
 });
+
+app.delete("/comments/:id", function(req, res) {
+    db.Comment
+        .findByIdAndRemove(req.params.id, (err, comment) => {
+        if (err) return res.status(500).send(err);
+        const response = {
+            message: "Comment successfully deleted",
+            id: comment._id
+        };
+        return res.status(200).send(response);
+    });
+})
 
 app.listen(PORT, function() {
     console.log("App running on port " + PORT + "!");
