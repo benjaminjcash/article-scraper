@@ -9,8 +9,56 @@
                 <h5 class="card-title">{{ title }}</h5>
                 <p class="card-text">{{ summary }}</p>
                 <a href="{{ link }}" class="btn btn-primary">Full Article</a>
+                <button type="button" data-id="{{ _id }}" class="btn btn-light display-comments">See Comments</button>
+                <button type="button" data-id="{{ _id }}" data-toggle="modal" data-target="#new-comment-model" class="btn btn-dark write-comment">Write Comment</button>                
             </div>
         </div>
         {{/each}}
     </ul>
+</div>
+
+<div class="modal fade" id="new-comment-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="label">New Comment</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="comment-title" class="col-form-label">Title:</label>
+                    <input type="text" class="form-control" id="comment-title">
+                </div>
+                <div class="form-group">
+                    <label for="comment-text" class="col-form-label">Comment:</label>
+                    <textarea class="form-control" id="comment-text"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" data-id="" class="btn btn-primary new-comment-submit" data-dismiss="modal">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="comments-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="label">Comments</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body comments-section">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" data-id="" class="btn btn-primary new-comment-submit" data-dismiss="modal">Submit</button>
+            </div>
+        </div>
+    </div>
 </div>

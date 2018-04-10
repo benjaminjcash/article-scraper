@@ -59,6 +59,32 @@ app.get("/display", function(req, res) {
         });
 });
 
+app.post("/articles/:id", function(req, res) {
+    db.Comment
+        .create(req.body)
+        .then(function(dbComment) {
+            console.log(dbComment);
+            return db.Article.findOneAndUpdate({ _id: req.params.id }, { comment: dbComment._id }, { new: true });
+        })
+        .then(function(dbArticle) {
+            res.json(dbArticle)
+        }).catch(function(err) {
+            res.json(err);
+        });
+});
+
+app.get("/comments/:id", function(req, res) {
+    db.Article
+        .findOne({ _id: req.params.id })
+        .populate("comment")
+        .then(function(dbArticle) {
+            res.json(dbArticle);
+        })
+        .catch(function(err) {
+            res.json(err);
+        });
+});
+
 app.listen(PORT, function() {
     console.log("App running on port " + PORT + "!");
 });

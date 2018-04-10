@@ -14,6 +14,10 @@ const ArticleSchema = new Schema({
     summary: {
         type: String,
         required: true
+    },
+    comment: {
+        type: Schema.Types.ObjectId,
+        ref: "Comment"
     }
 });
 
