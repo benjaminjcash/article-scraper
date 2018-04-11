@@ -16,9 +16,26 @@ app.use(express.static("public"));
 app.engine("handlebars", handlebars({ defaultLayout: "main" }));
 app.set("view engine", "handlebars");
 
-var MONGODB_URI = "process.env.mongodb://heroku_m72lj7wr:trk0v01r95i6uv2hkivnlb7kg0@ds135619.mlab.com:35619/heroku_m72lj7wr" || "mongodb://localhost/nytimes";
-mongoose.Promise = Promise;
-mongoose.connect(MONGODB_URI);
+//checking which database to connect to.
+
+const localDbUri = "mongodb://localhost/nytimes";
+if(process.env.MOGODB_URI) {
+    mongoose.connect(MONGODB_URI);    
+} else {
+    mongoose.connect(localDbUri);
+}
+
+//checking connection to MongoDB.
+
+const database = mongoose.connection;
+database.on("error", function(err) {
+    console.log("Mongoose Error: " + err);
+});
+database.once("open", function() {
+    console.log("Mongoose connection successful.");
+});
+
+//Routes
 
 app.get("/", function (req, res) {
     res.render("index", {});
