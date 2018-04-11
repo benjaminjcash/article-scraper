@@ -4,7 +4,7 @@ const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const db = require("./models")
 
-const port = process.env.PORT || 3000
+const PORT = process.env.PORT || 3000;
 const app = express();
 
 const axios = require("axios");
@@ -121,6 +121,6 @@ app.delete("/comments/:id", function(req, res) {
     });
 })
 
-app.listen(port, function() {
+app.listen(PORT, function() {
     console.log("App running on port " + PORT + "!");
 });
