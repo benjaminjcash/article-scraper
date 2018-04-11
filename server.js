@@ -20,7 +20,7 @@ app.set("view engine", "handlebars");
 
 const localDbUri = "mongodb://localhost/nytimes";
 if(process.env.MOGODB_URI) {
-    mongoose.connect(MONGODB_URI);    
+    mongoose.connect(process.env.MOGODB_URI);    
 } else {
     mongoose.connect(localDbUri);
 }
