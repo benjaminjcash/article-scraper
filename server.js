@@ -44,8 +44,8 @@ app.get("/scrape", function(req, res) {
                     } else {
                         db.Article
                             .create(result)
-                            .then(function (dbArticle) {
-                                res.json(dbArticle);
+                            .then(function () {
+                                res.end();
                             });
                     };
                 });
@@ -73,7 +73,8 @@ app.post("/articles/:id", function(req, res) {
         })
         .then(function(dbArticle) {
             res.json(dbArticle)
-        }).catch(function(err) {
+        })
+        .catch(function(err) {
             res.json(err);
         });
 });
@@ -94,12 +95,11 @@ app.get("/comments/:id", function(req, res) {
 app.delete("/comments/:id", function(req, res) {
     db.Comment
         .findByIdAndRemove(req.params.id, (err, comment) => {
-        if (err) return res.status(500).send(err);
         const response = {
             message: "Comment successfully deleted",
             id: comment._id
         };
-        return res.status(200).send(response);
+        res.status(200).send(response);
     });
 })
 
