@@ -16,8 +16,9 @@ app.use(express.static("public"));
 app.engine("handlebars", handlebars({ defaultLayout: "main" }));
 app.set("view engine", "handlebars");
 
+var MONGODB_URI = "process.env.mongodb://heroku_m72lj7wr:trk0v01r95i6uv2hkivnlb7kg0@ds135619.mlab.com:35619/heroku_m72lj7wr" || "mongodb://localhost/nytimes";
 mongoose.Promise = Promise;
-mongoose.connect("mongodb://localhost/nytimes");
+mongoose.connect(MONGODB_URI);
 
 app.get("/", function (req, res) {
     res.render("index", {});
