@@ -1,32 +1,35 @@
+// Require packages
 const express = require("express");
 const handlebars = require("express-handlebars");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
-const db = require("./models")
-
-const PORT = process.env.PORT || 3000;
-const app = express();
-
 const axios = require("axios");
 const cheerio = require("cheerio");
 
-app.use(bodyParser.urlencoded({ extended : false }));
+// Require all models
+const db = require("./models")
+
+// Initialize Express
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Use body-parser for handling form submissions
+app.use(bodyParser.urlencoded({ extended : true }));
+// Use express.static to serve the public folder as a static directory
 app.use(express.static("public"));
 
+// Set Handlebars
 app.engine("handlebars", handlebars({ defaultLayout: "main" }));
 app.set("view engine", "handlebars");
 
-//checking which database to connect to.
+// Connect to deployed database if available, otherwise use the local "nytimes" database.
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/nytimes";
+// Set mongoose to leverage built in JavaScript ES6 Promises
+// Connect to MongoDB
+mongoose.Promise = Promise;
+mongoose.connect(MONGODB_URI);
 
-const localDbUri = "mongodb://localhost/nytimes";
-if(process.env.MOGODB_URI) {
-    mongoose.connect(process.env.MOGODB_URI);    
-} else {
-    mongoose.connect(localDbUri);
-}
-
-//checking connection to MongoDB.
-
+// Check connection to MongoDB
 const database = mongoose.connection;
 database.on("error", function(err) {
     console.log("Mongoose Error: " + err);
@@ -35,42 +38,48 @@ database.once("open", function() {
     console.log("Mongoose connection successful.");
 });
 
-//Routes
+//------------------------------------//
+//--------------Routes----------------//
+//------------------------------------//
 
 app.get("/", function (req, res) {
     res.render("index", {});
 });
 
 app.get("/scrape", function(req, res) {
-    axios.get("https://www.nytimes.com/section/technology?action=click&pgtype=Homepage&region=TopBar&module=HPMiniNav&contentCollection=Tech&WT.nav=page")
+    axios.get("https://www.washingtonpost.com/business/technology/?nid=top_nav_tech&utm_term=.bb32021150b9")
     .then(function(response) {
-        const $ = cheerio.load(response.data);
-        $(".theme-summary a").each(function(i, element) {
-            //gather scraped article into a result object.
-            let result = {};
-            result.title = $(this).find("h2").text().trim();            
-            result.link = $(this).attr("href");
-            result.summary = $(this).find(".summary").text();
-            
 
-            //adds scraped article to database using Article model.
-            db.Article
-                .findOne({ title: result.title })
-                .then(function(match) {
-                    if(match) {
-                        res.end();
-                    } else {
-                        db.Article
-                            .create(result)
-                            .then(function () {
-                                res.end();
-                            });
-                    };
-                });
-                
-        }); 
-    }); 
-});
+        const $ = cheerio.load(response.data);
+        let results = [];
+
+        // Finds all elements with the class "theme-summary" and locates an anchor tag under that element.
+        // For each such tag, gathers targeted data and assembles in "result" object and pushes to "results."
+        $(".story-body").each(function(i, element) {
+            let result = {};
+            result.title = $(this).find("h3").text().trim();            
+            result.link = $(this).find("h3").find("a").attr("href");
+            result.summary = $(this).find("p").text();
+            results.push(result);
+        });
+
+        console.log(results);
+        
+        const promises = results.map(result => {
+                            db.Article
+                                .create(result)
+                                .catch(err => (err))
+                        });
+
+        Promise.all(promises).then(function(dbArticles) {
+            res.json(dbArticles);
+        })      
+                        
+    });
+
+}); 
+
+
 
 app.get("/display", function(req, res) {
     db.Article
@@ -121,6 +130,7 @@ app.delete("/comments/:id", function(req, res) {
     });
 })
 
+// Initialize server
 app.listen(PORT, function() {
     console.log("App running on port " + PORT + "!");
 });

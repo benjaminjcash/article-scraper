@@ -4,6 +4,7 @@ $("document").ready(function () {
     $(".scrape").on("click", function() {
         alert("Articles have been successfully scraped! Any duplicates will not be added to the database.")
         $.get("/scrape", function(data) {
+            console.log("returned data......")
             console.log(data);          
         });
     });
